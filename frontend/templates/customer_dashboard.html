@@ -1,0 +1,225 @@
+{% extends 'base.html' %}
+{% block title %}Customer Dashboard | EcoScrap Pro{% endblock %}
+
+{% block content %}
+<section class="max-w-7xl mx-auto px-4 py-8 space-y-8">
+  <div class="grid md:grid-cols-3 gap-4">
+    <div class="bg-white rounded-2xl p-5 border border-eco-100 shadow-sm">
+      <p class="text-sm text-slate-500">Total Requests</p>
+      <p class="font-heading text-3xl font-bold text-eco-700">{{ orders|length }}</p>
+    </div>
+    <div class="bg-white rounded-2xl p-5 border border-eco-100 shadow-sm">
+      <p class="text-sm text-slate-500">Pending</p>
+      <p class="font-heading text-3xl font-bold text-amber-600">{{ orders|selectattr('status', 'equalto', 'Pending')|list|length }}</p>
+    </div>
+    <div class="bg-white rounded-2xl p-5 border border-eco-100 shadow-sm">
+      <p class="text-sm text-slate-500">Completed</p>
+      <p class="font-heading text-3xl font-bold text-emerald-700">{{ orders|selectattr('status', 'equalto', 'Pickup Completed')|list|length }}</p>
+    </div>
+  </div>
+
+  <div>
+    <h2 class="font-heading text-2xl font-bold text-slate-900">Scrap Categories & Price List</h2>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-4">
+      {% for category in categories %}
+      <div class="bg-white rounded-2xl overflow-hidden border border-eco-100 hover:-translate-y-1 transition-transform shadow-sm">
+        <img src="{% if category.image_url %}{{ category.image_url }}?auto=format&fit=crop&w=800&q=70{% else %}https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=70{% endif %}" alt="{{ category.name }}" class="h-40 w-full object-cover" />
+        <div class="p-4">
+          <h3 class="font-semibold text-slate-900">{{ category.name }}</h3>
+          <p class="text-sm text-slate-600 mt-1">{{ category.description }}</p>
+          <p class="mt-3 text-eco-700 font-semibold">INR {{ category.base_price }} / kg</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="grid lg:grid-cols-2 gap-6">
+    <div class="bg-white rounded-2xl border border-eco-100 shadow-sm p-6">
+      <h2 class="font-heading text-xl font-bold">Schedule Pickup</h2>
+      <form action="{{ url_for('create_order') }}" method="POST" enctype="multipart/form-data" class="mt-4 space-y-4">
+        <div>
+          <label class="block text-sm mb-1">Scrap Category</label>
+          <select name="category_id" required class="w-full rounded-xl border border-eco-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-eco-500">
+            <option value="">Select category</option>
+            {% for category in categories %}
+            <option value="{{ category.id }}">{{ category.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm mb-1">Weight (kg)</label>
+            <input type="number" min="0.1" step="0.1" name="weight" required class="w-full rounded-xl border border-eco-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-eco-500" />
+          </div>
+          <div>
+            <label class="block text-sm mb-1">Pickup Date & Time</label>
+            <input type="datetime-local" name="scheduled_at" required class="w-full rounded-xl border border-eco-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-eco-500" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Address</label>
+          <textarea name="address" rows="2" required class="w-full rounded-xl border border-eco-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-eco-500"></textarea>
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Upload Scrap Photo</label>
+          <input type="file" accept="image/*" name="scrap_photo" class="w-full rounded-xl border border-eco-100 px-3 py-2" />
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Notes</label>
+          <textarea name="notes" rows="2" class="w-full rounded-xl border border-eco-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-eco-500"></textarea>
+        </div>
+        <input type="hidden" id="latitude" name="latitude" />
+        <input type="hidden" id="longitude" name="longitude" />
+
+        <button type="submit" class="w-full py-3 rounded-xl bg-eco-500 hover:bg-eco-700 text-white font-semibold transition">Submit Pickup Request</button>
+      </form>
+    </div>
+
+    <div class="bg-white rounded-2xl border border-eco-100 shadow-sm p-6">
+      <h2 class="font-heading text-xl font-bold">Nearby Scrap Shops & Location Pin</h2>
+      <p class="text-sm text-slate-600 mt-1">Drag the pin to your pickup location. Nearby scrap shops are marked on map.</p>
+      {% if google_maps_api_key %}
+      <div id="customerMap" class="rounded-xl border border-eco-100 h-[420px] mt-4"></div>
+      {% else %}
+      <div class="mt-4 p-4 rounded-xl bg-amber-50 text-amber-700 border border-amber-200 text-sm">
+        Google Maps is disabled. Add `GOOGLE_MAPS_API_KEY` in `.env` to enable map features.
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="bg-white rounded-2xl border border-eco-100 shadow-sm p-6">
+    <h2 class="font-heading text-xl font-bold">Pickup Tracking</h2>
+    <div class="overflow-x-auto mt-4">
+      <table class="min-w-full text-sm">
+        <thead>
+          <tr class="text-left border-b border-eco-100">
+            <th class="py-2 pr-3">Order</th>
+            <th class="py-2 pr-3">Category</th>
+            <th class="py-2 pr-3">Weight</th>
+            <th class="py-2 pr-3">Pickup Time</th>
+            <th class="py-2 pr-3">Status</th>
+            <th class="py-2 pr-3">Image</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for order in orders %}
+          <tr class="border-b border-eco-50">
+            <td class="py-3 pr-3">#{{ order.id }}</td>
+            <td class="py-3 pr-3">{{ order.category.name }}</td>
+            <td class="py-3 pr-3">{{ order.weight }} kg</td>
+            <td class="py-3 pr-3">{{ order.scheduled_at.strftime('%d %b %Y, %I:%M %p') }}</td>
+            <td class="py-3 pr-3">
+              <span class="px-2 py-1 rounded-full text-xs font-semibold
+              {% if order.status == 'Pending' %}bg-amber-100 text-amber-700{% elif order.status == 'Accepted' %}bg-blue-100 text-blue-700{% elif order.status == 'Pickup Completed' %}bg-emerald-100 text-emerald-700{% else %}bg-rose-100 text-rose-700{% endif %}">
+                {{ order.status }}
+              </span>
+            </td>
+            <td class="py-3 pr-3">
+              {% if order.images %}
+                <a href="{{ url_for('uploaded_file', filename=order.images[0].image_path) }}" target="_blank" class="text-eco-700 underline">View</a>
+              {% else %}
+                <span class="text-slate-400">N/A</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="6" class="py-8 text-center text-slate-500">No pickup requests yet.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+{% if google_maps_api_key %}
+<script>
+  let customerMap;
+  let pickupMarker;
+
+  function initCustomerMap() {
+    const defaultLocation = { lat: 12.9716, lng: 77.5946 };
+    customerMap = new google.maps.Map(document.getElementById('customerMap'), {
+      center: defaultLocation,
+      zoom: 12,
+      styles: [
+        { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+        { featureType: 'transit', stylers: [{ visibility: 'off' }] }
+      ]
+    });
+
+    pickupMarker = new google.maps.Marker({
+      position: defaultLocation,
+      map: customerMap,
+      draggable: true,
+      title: 'Pickup location'
+    });
+
+    updateCoordinates(defaultLocation);
+
+    pickupMarker.addListener('dragend', () => {
+      const position = pickupMarker.getPosition();
+      updateCoordinates({ lat: position.lat(), lng: position.lng() });
+    });
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const userLocation = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
+          customerMap.setCenter(userLocation);
+          pickupMarker.setPosition(userLocation);
+          updateCoordinates(userLocation);
+          searchNearbyShops(userLocation);
+        },
+        () => searchNearbyShops(defaultLocation)
+      );
+    } else {
+      searchNearbyShops(defaultLocation);
+    }
+  }
+
+  function updateCoordinates(location) {
+    document.getElementById('latitude').value = location.lat;
+    document.getElementById('longitude').value = location.lng;
+  }
+
+  function searchNearbyShops(location) {
+    const service = new google.maps.places.PlacesService(customerMap);
+    service.nearbySearch(
+      {
+        location,
+        radius: 5000,
+        keyword: 'scrap shop recycling center'
+      },
+      (results, status) => {
+        if (status !== google.maps.places.PlacesServiceStatus.OK || !results) {
+          return;
+        }
+        results.slice(0, 10).forEach((place) => {
+          const marker = new google.maps.Marker({
+            map: customerMap,
+            position: place.geometry.location,
+            icon: {
+              url: 'https://maps.google.com/mapfiles/ms/icons/green-dot.png'
+            }
+          });
+          const infoWindow = new google.maps.InfoWindow({ content: `<strong>${place.name}</strong><br/>${place.vicinity || ''}` });
+          marker.addListener('click', () => infoWindow.open(customerMap, marker));
+        });
+      }
+    );
+  }
+
+  window.initCustomerMap = initCustomerMap;
+</script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&libraries=places&callback=initCustomerMap"></script>
+{% endif %}
+{% endblock %}

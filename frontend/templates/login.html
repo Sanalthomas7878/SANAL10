@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block title %}Login | EcoScrap Pro{% endblock %}
+
+{% block content %}
+<section class="relative min-h-screen overflow-hidden scrap-bg flex items-center justify-center px-4 py-12">
+  <div class="absolute inset-0 bg-gradient-to-br from-emerald-950/70 via-emerald-900/50 to-lime-700/40"></div>
+
+  <div id="parallax-layer" class="absolute inset-0 pointer-events-none">
+    <div class="scrap-particle metal"></div>
+    <div class="scrap-particle plastic"></div>
+    <div class="scrap-particle board"></div>
+    <div class="scrap-particle can"></div>
+    <div class="scrap-particle wire"></div>
+    <div class="scrap-particle bottle"></div>
+  </div>
+
+  <div class="relative z-10 w-full max-w-5xl grid md:grid-cols-2 gap-8 items-center">
+    <div class="text-white space-y-4">
+      <h1 class="font-heading text-4xl md:text-5xl font-extrabold leading-tight">Smart Scrap Pickup for a Cleaner City</h1>
+      <p class="text-emerald-100 text-lg">Track scrap pickups, upload images, and schedule recycling from one modern dashboard.</p>
+      <div class="flex flex-wrap gap-3 text-sm">
+        <span class="px-3 py-1 rounded-full bg-white/20 backdrop-blur border border-white/30">Google Maps Enabled</span>
+        <span class="px-3 py-1 rounded-full bg-white/20 backdrop-blur border border-white/30">Live Status Tracking</span>
+        <span class="px-3 py-1 rounded-full bg-white/20 backdrop-blur border border-white/30">Admin Workflow</span>
+      </div>
+    </div>
+
+    <div class="glass-card rounded-3xl p-8 shadow-2xl border border-white/30">
+      <h2 class="font-heading text-2xl font-bold text-white">Welcome Back</h2>
+      <p class="text-emerald-50 text-sm mt-2">Login to manage your scrap pickups.</p>
+
+      <form action="{{ url_for('login') }}" method="POST" class="mt-6 space-y-4">
+        <div>
+          <label class="block text-sm text-emerald-100 mb-1">Email</label>
+          <input type="email" name="email" required class="w-full px-4 py-3 rounded-xl bg-white/90 focus:bg-white text-slate-800 border border-emerald-100 outline-none focus:ring-2 focus:ring-eco-500" />
+        </div>
+        <div>
+          <label class="block text-sm text-emerald-100 mb-1">Password</label>
+          <input type="password" name="password" required class="w-full px-4 py-3 rounded-xl bg-white/90 focus:bg-white text-slate-800 border border-emerald-100 outline-none focus:ring-2 focus:ring-eco-500" />
+        </div>
+        <button type="submit" class="w-full py-3 rounded-xl bg-eco-500 hover:bg-eco-700 text-white font-semibold transition">Login</button>
+      </form>
+
+      <p class="mt-4 text-sm text-emerald-50">New customer? <a href="{{ url_for('register') }}" class="text-white font-semibold underline">Create Account</a></p>
+      <p class="mt-2 text-xs text-emerald-100">Default admin: admin@scrap.local / Admin@123</p>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const layer = document.getElementById('parallax-layer');
+  if (layer) {
+    window.addEventListener('mousemove', (event) => {
+      const x = (event.clientX / window.innerWidth - 0.5) * 20;
+      const y = (event.clientY / window.innerHeight - 0.5) * 20;
+      layer.style.transform = `translate(${x}px, ${y}px)`;
+    });
+  }
+</script>
+{% endblock %}

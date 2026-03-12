@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Scrap Management{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            heading: ['Sora', 'sans-serif'],
+            body: ['Manrope', 'sans-serif']
+          },
+          colors: {
+            eco: {
+              50: '#f2fbf6',
+              100: '#ddf6e6',
+              300: '#81dca8',
+              500: '#23b26b',
+              700: '#0d7f49',
+              900: '#0a4f30'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  {% block head %}{% endblock %}
+</head>
+<body class="font-body bg-eco-50 text-slate-800 min-h-screen">
+  {% if current_user_name %}
+  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-eco-100">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+      <a href="{{ url_for('index') }}" class="font-heading text-xl font-bold text-eco-700">EcoScrap Pro</a>
+      <div class="flex items-center gap-4">
+        <span class="text-sm text-slate-600">{{ current_user_name }} ({{ current_user_role }})</span>
+        <a href="{{ url_for('logout') }}" class="px-4 py-2 bg-eco-500 text-white rounded-lg hover:bg-eco-700 transition">Logout</a>
+      </div>
+    </div>
+  </header>
+  {% endif %}
+
+  <main>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      <div class="max-w-7xl mx-auto px-4 pt-4 space-y-2">
+        {% for category, message in messages %}
+          <div class="flash-item p-3 rounded-xl text-sm {% if category == 'error' %}bg-red-100 text-red-800 border border-red-200{% else %}bg-emerald-100 text-emerald-900 border border-emerald-200{% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>
