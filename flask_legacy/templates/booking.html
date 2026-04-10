@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 2rem auto; background: var(--surface); padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+    <h1 style="text-align: center; margin-bottom: 2rem;">Book a Service or Pickup</h1>
+    
+    <form method="POST" action="{{ url_for('booking') }}">
+        <div class="form-group">
+            <label for="type">Booking Type</label>
+            <select name="type" id="type" class="form-control" required>
+                <option value="">Select type...</option>
+                <option value="scrap">Scrap Pickup</option>
+                <option value="service">Home Service</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="item">Item or Service Required</label>
+            <input type="text" name="item" id="item" class="form-control" placeholder="e.g. 10kg Plastic, or Home Cleaning" required>
+        </div>
+
+        <div class="form-group">
+            <label for="address">Full Address</label>
+            <textarea name="address" id="address" class="form-control" rows="3" placeholder="123 Main St, Appt 4B" required></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="pincode">PIN Code (Serviceable: 576101, 576102)</label>
+            <input type="text" name="pincode" id="pincode" class="form-control" placeholder="e.g. 576101" required>
+        </div>
+
+        <div class="form-group">
+            <label>Location Map</label>
+            <div id="map"></div>
+            <p style="font-size: 0.8rem; color: var(--text-secondary);">Drag the marker exactly to your location (Requires valid Maps API key in base.html).</p>
+        </div>
+
+        <div class="form-group">
+            <label for="date">Scheduled Date</label>
+            <input type="date" name="date" id="date" class="form-control" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Confirm Booking</button>
+    </form>
+</div>
+{% endblock %}

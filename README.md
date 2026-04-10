@@ -1,72 +1,108 @@
-# EcoScrap Pro - Scrap Management System
+# EcoScrap Pro MERN Stack Application
 
-A modern full-stack Scrap Management System with customer pickup scheduling, admin operations, image uploads, and Google Maps-based location support.
+Welcome to the fully rebuilt, scalable, and modern **EcoScrap Pro** platform. This project operates on a full-stack **MERN** architecture (MongoDB, Express, React, Node.js) separated by pure domain logic.
 
-## Tech Stack
-- Frontend: HTML5, CSS3, JavaScript, Tailwind CSS (CDN)
-- Backend: Python Flask
-- Database: MySQL
-- Maps: Google Maps JavaScript API + Places API
-- Uploads: Local server storage (`assets/uploads/`)
+## 📁 Folder Structure
 
-## Project Structure
-- `frontend/` - templates and static files
-- `backend/` - Flask backend (auth, orders, admin, APIs)
-- `database/` - MySQL schema
-- `assets/images/scrap/` - reserved local image folder
+```text
+SANAL9/
+├── backend/       # Node.js + Express API server (Controllers, Models, Routes)
+├── frontend/      # Vite + React UI with Framer Motion and Custom CSS
+└── legacy/        # The original Python Flask architecture preserved for reference
+```
 
-## Features
-- Responsive modern UI
-- Animated glassmorphism login page with floating scrap particles
-- Register/Login for customers
-- Admin login and role-based dashboard
-- Scrap photo upload
-- Scrap category listing with prices
-- Pickup scheduling and status tracking
-- Google Maps location pin + nearby scrap shop discovery
-- Admin order management (Pending, Accepted, Rejected, Pickup Completed)
-- Admin metrics (total/pending/accepted/completed)
+## 🛠 Environment Setup Guide
 
-## Database Tables
-- `users`
-- `admins`
-- `scrap_categories`
-- `orders`
-- `scrap_images`
+Before you start, you need to configure your environment variables for both the frontend and the backend.
 
-## Setup
-1. Create MySQL database and tables:
-   ```bash
-   mysql -u root -p < database/schema.sql
-   ```
-2. Create and activate virtual environment:
-   ```bash
-   python3 -m venv .venv
-   source .venv/bin/activate
-   ```
-3. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-4. Configure environment:
-   ```bash
-   cp .env.example .env
-   ```
-   Update values in `.env`.
-
-5. Run app:
-   ```bash
-   flask --app backend.app init-db
-   flask --app backend.app run --debug
+### Backend Setup (`backend/.env`)
+1. Navigate to the `backend/` directory.
+2. Create a file named `.env`.
+3. Add the following details:
+   ```env
+   PORT=5050
+   MONGO_URI=mongodb://127.0.0.1:27017/ecoscrap
+   JWT_SECRET=your_super_secret_jwt_key_here
    ```
 
-## Default Admin Login
-- Email: `admin@scrap.local`
-- Password: `Admin@123`
+### Frontend Setup (`frontend/.env`)
+1. Navigate to the `frontend/` directory.
+2. Create a file named `.env`.
+3. Add the following details:
+   ```env
+   VITE_API_URL=http://localhost:5050/api
+   VITE_GOOGLE_MAPS_API_KEY=your_google_maps_api_key
+   ```
 
-(Change both via `.env` before production use.)
+## 🚀 Step-by-Step Run Instructions
 
-## Notes
-- Google Maps requires a valid `GOOGLE_MAPS_API_KEY` with Maps JavaScript API and Places API enabled.
-- Uploaded files are stored in `assets/uploads/`.
-- Category cards use public image URLs by default.
+### Single Combined Localhost Server
+If you want the frontend and backend combined into one localhost app, run this from the project root:
+
+```bash
+npm start
+```
+
+Then open:
+
+```text
+http://127.0.0.1:5050/
+```
+
+This builds the Vite frontend and lets the Express backend serve the compiled app and all `/api` routes from the same server.
+
+### Starting the Backend
+1. Open a terminal and navigate to the `backend` folder:
+   ```bash
+   cd backend
+   ```
+2. Install the necessary dependencies (already installed during setup, but safe to verify):
+   ```bash
+   npm install
+   ```
+3. Start the Express development server:
+   ```bash
+   node index.js
+   ```
+   *(You should see "Server running on port 5050" and "MongoDB connected")*
+
+### Starting the Frontend
+1. Open a **new** terminal window and navigate to the `frontend` folder:
+   ```bash
+   cd frontend
+   ```
+2. Install the dependencies:
+   ```bash
+   npm install
+   ```
+3. Start the Vite React development server:
+   ```bash
+   npm run dev
+   ```
+4. Open your browser and navigate to the local link provided by Vite (e.g., `http://localhost:5173`).
+
+### Development Mode
+If you want hot reload while developing the UI, you can still run the frontend separately:
+
+```bash
+npm run dev:frontend
+```
+
+The Vite dev server runs on:
+
+```text
+http://127.0.0.1:4173/
+```
+
+For the API during development, run:
+
+```bash
+npm run dev:backend
+```
+
+## 💎 Key Features Implemented
+- **Modern Aesthetic**: Glassmorphism, tailored Vanilla CSS variables, and modern typography combinations (Outfit & Inter).
+- **Responsive Design**: Clean container layouts built into the `index.css`.
+- **Authentication System**: Secure JWT architecture mapped within Express middleware `protect` and `admin` roles.
+- **Scalable Component Structure**: Models map specifically to Booking schemas, Location matrices, and Corporate Partnerships.
+- **Dynamic UI Framework Flow**: Framer motion handles subtle micro-animations for an elevated user experience.

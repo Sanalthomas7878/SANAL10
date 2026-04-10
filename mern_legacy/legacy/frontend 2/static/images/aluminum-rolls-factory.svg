@@ -1,0 +1,135 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title desc">
+  <title id="title">Aluminum rolls in a factory</title>
+  <desc id="desc">A row of large aluminum coils in a blue industrial warehouse.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#16304d" />
+      <stop offset="0.45" stop-color="#2d5f8d" />
+      <stop offset="1" stop-color="#88b2da" />
+    </linearGradient>
+    <linearGradient id="floor" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#14314c" />
+      <stop offset="0.5" stop-color="#2d5d88" />
+      <stop offset="1" stop-color="#d3e4f6" />
+    </linearGradient>
+    <linearGradient id="metal" x1="0" x2="1">
+      <stop offset="0" stop-color="#7d8ea4" />
+      <stop offset="0.18" stop-color="#edf4fb" />
+      <stop offset="0.36" stop-color="#9eb0c7" />
+      <stop offset="0.54" stop-color="#f8fcff" />
+      <stop offset="0.74" stop-color="#8d9eb4" />
+      <stop offset="1" stop-color="#eef4fb" />
+    </linearGradient>
+    <linearGradient id="strap" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#2b4c67" />
+      <stop offset="1" stop-color="#162839" />
+    </linearGradient>
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    <g id="coil">
+      <ellipse cx="0" cy="0" rx="120" ry="132" fill="url(#metal)" />
+      <ellipse cx="0" cy="0" rx="36" ry="42" fill="#23415d" opacity="0.85" />
+      <ellipse cx="0" cy="0" rx="22" ry="27" fill="#8eb0cf" opacity="0.5" />
+      <ellipse cx="0" cy="0" rx="110" ry="122" fill="none" stroke="#eff6fd" stroke-opacity="0.55" stroke-width="1.8" />
+      <ellipse cx="0" cy="0" rx="100" ry="111" fill="none" stroke="#6f8296" stroke-opacity="0.55" stroke-width="1.4" />
+      <ellipse cx="0" cy="0" rx="89" ry="100" fill="none" stroke="#eff6fd" stroke-opacity="0.5" stroke-width="1.4" />
+      <ellipse cx="0" cy="0" rx="78" ry="88" fill="none" stroke="#708398" stroke-opacity="0.45" stroke-width="1.2" />
+      <ellipse cx="0" cy="0" rx="67" ry="76" fill="none" stroke="#eef5fb" stroke-opacity="0.46" stroke-width="1.1" />
+      <ellipse cx="0" cy="0" rx="56" ry="64" fill="none" stroke="#718398" stroke-opacity="0.42" stroke-width="1" />
+      <ellipse cx="0" cy="0" rx="46" ry="52" fill="none" stroke="#f5fbff" stroke-opacity="0.42" stroke-width="0.9" />
+      <path d="M-126 -24 C-83 -60 84 -61 126 -18 L126 3 C84 -37 -84 -36 -126 -1Z" fill="url(#strap)" opacity="0.95" />
+      <path d="M-126 30 C-83 -7 84 -8 126 35 L126 56 C84 16 -84 17 -126 52Z" fill="url(#strap)" opacity="0.95" />
+      <path d="M-121 -26 C-77 -67 78 -67 121 -24" fill="none" stroke="#5f7388" stroke-width="4" stroke-linecap="round" opacity="0.4" />
+      <path d="M-121 51 C-78 14 78 14 121 56" fill="none" stroke="#5f7388" stroke-width="4" stroke-linecap="round" opacity="0.4" />
+    </g>
+  </defs>
+
+  <rect width="1200" height="800" fill="url(#bg)" />
+
+  <g opacity="0.26">
+    <rect x="66" y="38" width="22" height="430" fill="#c8ddf1" />
+    <rect x="190" y="32" width="18" height="428" fill="#d4e6f7" />
+    <rect x="315" y="38" width="16" height="432" fill="#c4d8eb" />
+    <rect x="446" y="36" width="18" height="432" fill="#d3e4f5" />
+    <rect x="582" y="40" width="16" height="432" fill="#c6dcee" />
+    <rect x="720" y="36" width="18" height="432" fill="#d6e7f8" />
+    <rect x="860" y="34" width="16" height="432" fill="#c2d8ec" />
+    <rect x="998" y="36" width="20" height="432" fill="#d9e9f7" />
+  </g>
+
+  <g opacity="0.85" filter="url(#softGlow)">
+    <rect x="102" y="48" width="160" height="16" rx="8" fill="#f7fbff" />
+    <rect x="298" y="48" width="150" height="16" rx="8" fill="#eff7ff" />
+    <rect x="485" y="48" width="166" height="16" rx="8" fill="#f7fbff" />
+    <rect x="689" y="48" width="156" height="16" rx="8" fill="#eff7ff" />
+    <rect x="888" y="48" width="176" height="16" rx="8" fill="#f7fbff" />
+  </g>
+
+  <path d="M0 455 L1200 360 L1200 800 L0 800Z" fill="url(#floor)" />
+  <path d="M0 512 L1200 390" stroke="#f2d86a" stroke-width="6" opacity="0.8" />
+  <path d="M0 556 L1200 430" stroke="#b5d2eb" stroke-width="4" opacity="0.35" />
+  <path d="M0 604 L1200 473" stroke="#b5d2eb" stroke-width="3" opacity="0.25" />
+
+  <g opacity="0.34">
+    <path d="M166 132 L1038 96" stroke="#b5d1ea" stroke-width="6" />
+    <path d="M158 218 L1046 182" stroke="#b5d1ea" stroke-width="5" />
+    <path d="M150 300 L1054 266" stroke="#b5d1ea" stroke-width="4" />
+  </g>
+
+  <g transform="translate(120 468) scale(1.24)">
+    <use href="#coil" />
+  </g>
+  <g transform="translate(312 462) scale(1.08)">
+    <use href="#coil" />
+  </g>
+  <g transform="translate(472 456) scale(0.92)">
+    <use href="#coil" />
+  </g>
+  <g transform="translate(612 450) scale(0.78)">
+    <use href="#coil" />
+  </g>
+  <g transform="translate(732 444) scale(0.66)">
+    <use href="#coil" />
+  </g>
+  <g transform="translate(836 438) scale(0.56)">
+    <use href="#coil" />
+  </g>
+  <g transform="translate(924 432) scale(0.47)">
+    <use href="#coil" />
+  </g>
+  <g transform="translate(997 426) scale(0.39)">
+    <use href="#coil" />
+  </g>
+  <g transform="translate(1062 420) scale(0.32)">
+    <use href="#coil" />
+  </g>
+
+  <g opacity="0.22">
+    <ellipse cx="138" cy="642" rx="172" ry="42" fill="#dcebf9" />
+    <ellipse cx="312" cy="610" rx="136" ry="34" fill="#dcebf9" />
+    <ellipse cx="472" cy="584" rx="114" ry="28" fill="#dcebf9" />
+    <ellipse cx="612" cy="560" rx="98" ry="24" fill="#dcebf9" />
+    <ellipse cx="732" cy="540" rx="82" ry="20" fill="#dcebf9" />
+    <ellipse cx="836" cy="520" rx="68" ry="17" fill="#dcebf9" />
+    <ellipse cx="924" cy="505" rx="56" ry="14" fill="#dcebf9" />
+  </g>
+
+  <g transform="translate(1104 420)">
+    <ellipse cx="0" cy="108" rx="18" ry="8" fill="#cfe3f4" opacity="0.35" />
+    <rect x="-9" y="22" width="18" height="74" rx="7" fill="#1d4f7a" />
+    <rect x="-14" y="38" width="28" height="36" rx="8" fill="#2f74a8" />
+    <circle cx="0" cy="10" r="16" fill="#77a8d1" />
+    <path d="M-10 94 L-20 126" stroke="#18344e" stroke-width="6" stroke-linecap="round" />
+    <path d="M10 94 L22 126" stroke="#18344e" stroke-width="6" stroke-linecap="round" />
+    <path d="M-12 46 L-32 80" stroke="#204c72" stroke-width="6" stroke-linecap="round" />
+    <path d="M12 46 L31 79" stroke="#204c72" stroke-width="6" stroke-linecap="round" />
+  </g>
+
+  <rect x="682" y="120" width="128" height="34" rx="4" fill="#d4d46d" opacity="0.8" />
+  <text x="746" y="143" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#39444f">QUALITY</text>
+</svg>

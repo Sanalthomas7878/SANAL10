@@ -1,0 +1,21 @@
+{
+  "name": "sanal9",
+  "version": "1.0.0",
+  "description": "A modern full-stack Scrap Management System with customer pickup scheduling, admin operations, image uploads, and Google Maps-based location support.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sanalthomas7878/git-clone-https---github.com-SujanyaIpse-scrap-management-system.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Sanalthomas7878/git-clone-https---github.com-SujanyaIpse-scrap-management-system/issues"
+  },
+  "homepage": "https://github.com/Sanalthomas7878/git-clone-https---github.com-SujanyaIpse-scrap-management-system#readme"
+}
