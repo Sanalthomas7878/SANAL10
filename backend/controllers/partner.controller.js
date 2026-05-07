@@ -46,8 +46,8 @@ exports.becomePartner = async (req, res) => {
       return res.status(400).json({ message: 'Please choose at least one service or scrap category.' });
     }
 
-    if (Number.isNaN(parsedExpectedMonthlyVolumeKg) || parsedExpectedMonthlyVolumeKg < 0) {
-      return res.status(400).json({ message: 'Please enter a valid expected monthly scrap volume.' });
+    if (Number.isNaN(parsedExpectedMonthlyVolumeKg) || parsedExpectedMonthlyVolumeKg < 15) {
+      return res.status(400).json({ message: 'Partner bookings require at least 15 kg of scrap volume.' });
     }
 
     const partner = await Partner.create({

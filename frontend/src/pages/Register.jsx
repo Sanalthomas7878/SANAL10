@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { MapPin, UserPlus } from 'lucide-react';
+import { CheckCircle2, House, MapPin, Truck, UserPlus } from 'lucide-react';
 import PasswordField from '../components/PasswordField';
 import PhoneField from '../components/PhoneField';
 import { useAuth } from '../context/useAuth';
 import { api, getErrorMessage } from '../lib/api';
-import { locationFallback, operatingModesFallback } from '../lib/defaultData';
+import { locationFallback, operatingModesFallback, serviceFallback } from '../lib/defaultData';
 import { getIndianPhoneValidationMessage, isRepeatedDigitIndianPhone } from '../lib/phone';
 import {
   buildServiceAreaAddress,
@@ -16,12 +16,14 @@ import {
 } from '../lib/locationLookup';
 
 const MotionDiv = motion.div;
+const getServiceGroup = (service) => service.serviceGroup || 'service';
 
 const Register = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const [locations, setLocations] = useState(locationFallback);
   const [operatingModes, setOperatingModes] = useState(operatingModesFallback);
+  const [services, setServices] = useState(serviceFallback);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
@@ -43,25 +45,35 @@ const Register = () => {
   useEffect(() => {
     let ignore = false;
 
-    api.get('/locations')
-      .then(({ data }) => {
+    Promise.allSettled([
+      api.get('/locations'),
+      api.get('/services'),
+    ])
+      .then(([locationsResult, servicesResult]) => {
         if (ignore) {
           return;
         }
 
-        if (Array.isArray(data.locations) && data.locations.length > 0) {
-          setLocations(data.locations);
+        if (locationsResult.status === 'fulfilled') {
+          const { data } = locationsResult.value;
+
+          if (Array.isArray(data.locations) && data.locations.length > 0) {
+            setLocations(data.locations);
+          }
+
+          if (Array.isArray(data.operatingModes) && data.operatingModes.length > 0) {
+            setOperatingModes(data.operatingModes);
+            setFormData((current) => ({
+              ...current,
+              operatingMode: current.operatingMode || data.operatingModes[0],
+            }));
+          }
         }
 
-        if (Array.isArray(data.operatingModes) && data.operatingModes.length > 0) {
-          setOperatingModes(data.operatingModes);
-          setFormData((current) => ({
-            ...current,
-            operatingMode: current.operatingMode || data.operatingModes[0],
-          }));
+        if (servicesResult.status === 'fulfilled' && Array.isArray(servicesResult.value.data) && servicesResult.value.data.length > 0) {
+          setServices(servicesResult.value.data);
         }
-      })
-      .catch(() => {});
+      });
 
     return () => {
       ignore = true;
@@ -72,6 +84,8 @@ const Register = () => {
   const selectedLocation = findLocationByPinCode(locations, normalizedPinCode);
   const pinCodeStatus = getPinCodeStatus(normalizedPinCode, selectedLocation);
   const detectedServiceArea = buildServiceAreaAddress(selectedLocation);
+  const regularServices = services.filter((service) => getServiceGroup(service) !== 'homeService');
+  const homeServices = services.filter((service) => getServiceGroup(service) === 'homeService');
   const repeatedPhoneWarning = isRepeatedDigitIndianPhone(formData.phone)
     ? 'Phone number cannot contain the same digit repeated 10 times.'
     : '';
@@ -82,6 +96,13 @@ const Register = () => {
     setFormData((current) => ({
       ...current,
       [name]: name === 'pinCode' ? normalizePinCode(value) : value,
+    }));
+  };
+
+  const handlePinCodeSelect = (pinCode) => {
+    setFormData((current) => ({
+      ...current,
+      pinCode,
     }));
   };
 
@@ -154,6 +175,10 @@ const Register = () => {
               <div style={{ fontSize: '2rem', fontWeight: 700 }}>{operatingModes.length}</div>
               <div style={{ color: 'var(--text-secondary)' }}>Operating modes available</div>
             </div>
+            <div style={{ padding: '1rem', borderRadius: '1rem', background: 'rgba(255,255,255,0.7)' }}>
+              <div style={{ fontSize: '2rem', fontWeight: 700 }}>{services.length}</div>
+              <div style={{ color: 'var(--text-secondary)' }}>Services currently available</div>
+            </div>
             {pinCodeStatus === 'serviceable' && selectedLocation ? (
               <div style={{ padding: '1rem', borderRadius: '1rem', background: 'rgba(255,255,255,0.7)' }}>
                 <div className="flex items-center gap-2" style={{ marginBottom: '0.35rem' }}>
@@ -164,9 +189,51 @@ const Register = () => {
                 <div style={{ color: 'var(--text-secondary)' }}>{selectedLocation.city}, {selectedLocation.state}</div>
               </div>
             ) : null}
+            {pinCodeStatus === 'serviceable' && selectedLocation ? (
+              <div style={{ padding: '1rem', borderRadius: '1rem', background: 'rgba(16, 185, 129, 0.12)' }}>
+                <div className="flex items-center gap-2" style={{ marginBottom: '0.35rem' }}>
+                  <CheckCircle2 size={16} color="var(--success)" />
+                  <strong>Service is available here</strong>
+                </div>
+                <div style={{ color: 'var(--text-secondary)' }}>
+                  Register with PIN code {selectedLocation.pinCode} to access scrap pickup and home service bookings in this area.
+                </div>
+              </div>
+            ) : null}
             {pinCodeStatus === 'unavailable' ? (
               <div style={{ padding: '1rem', borderRadius: '1rem', background: 'rgba(239, 68, 68, 0.12)', color: 'var(--error)' }}>
                 Service is not available for PIN code {normalizedPinCode}.
+              </div>
+            ) : null}
+            {pinCodeStatus === 'serviceable' && selectedLocation ? (
+              <div style={{ padding: '1rem', borderRadius: '1rem', background: 'rgba(255,255,255,0.7)' }}>
+                <div className="flex items-center gap-2" style={{ marginBottom: '0.75rem' }}>
+                  <Truck size={16} color="var(--secondary)" />
+                  <strong>Available services</strong>
+                </div>
+                <div style={{ display: 'grid', gap: '0.85rem' }}>
+                  <div>
+                    <div style={{ fontSize: '0.875rem', fontWeight: 700, marginBottom: '0.5rem' }}>Services</div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                      {regularServices.map((service) => (
+                        <span key={service._id} className="pill">{service.name}</span>
+                      ))}
+                    </div>
+                  </div>
+                  {homeServices.length > 0 ? (
+                    <div>
+                      <div className="flex items-center gap-2" style={{ fontSize: '0.875rem', fontWeight: 700, marginBottom: '0.5rem' }}>
+                        <House size={14} color="var(--warning)" />
+                        <span>Home Services</span>
+                      </div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                        {homeServices.map((service) => (
+                          <span key={service._id} className="pill">{service.name}</span>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
               </div>
             ) : null}
           </div>
@@ -236,11 +303,45 @@ const Register = () => {
                   Enter all 6 digits to detect your service area.
                 </div>
               ) : null}
+              {pinCodeStatus === 'serviceable' && selectedLocation ? (
+                <div style={{ marginTop: '0.5rem', color: 'var(--success)', fontSize: '0.875rem' }}>
+                  Service is available for this PIN code.
+                </div>
+              ) : null}
               {pinCodeStatus === 'unavailable' ? (
                 <div style={{ marginTop: '0.5rem', color: 'var(--error)', fontSize: '0.875rem' }}>
                   Service is not available for this PIN code.
                 </div>
               ) : null}
+            </div>
+            <div className="form-group">
+              <label className="form-label">Service Available Codes</label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                {locations.map((location) => {
+                  const isSelected = location.pinCode === normalizedPinCode;
+
+                  return (
+                    <button
+                      key={location.pinCode}
+                      type="button"
+                      className="pill"
+                      onClick={() => handlePinCodeSelect(location.pinCode)}
+                      title={`${location.areaName}, ${location.city}`}
+                      style={{
+                        border: isSelected ? '1px solid var(--primary)' : '1px solid transparent',
+                        background: isSelected ? 'rgba(16, 185, 129, 0.14)' : undefined,
+                        color: isSelected ? 'var(--primary)' : undefined,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {location.pinCode}
+                    </button>
+                  );
+                })}
+              </div>
+              <div style={{ marginTop: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
+                Select any serviceable PIN code to auto-fill the field and detect the area.
+              </div>
             </div>
             <div className="form-group">
               <label className="form-label">Detected Service Area</label>

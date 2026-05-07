@@ -10,6 +10,8 @@ import UserDashboard from './pages/UserDashboard';
 import Services from './pages/Services';
 import Partners from './pages/Partners';
 import AdminDashboard from './pages/AdminDashboard';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
 const LandingRedirect = () => {
   const { isAuthenticated, user } = useAuth();
@@ -34,6 +36,8 @@ function App() {
           <Routes>
             <Route path="/" element={<LandingRedirect />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/register" element={<Register />} />
             <Route
               path="/dashboard"

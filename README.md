@@ -23,7 +23,13 @@ Before you start, you need to configure your environment variables for both the 
    PORT=5050
    MONGO_URI=mongodb://127.0.0.1:27017/ecoscrap
    JWT_SECRET=your_super_secret_jwt_key_here
+   SMTP_SERVICE=gmail
+   SMTP_USER=your-sender@gmail.com
+   SMTP_PASS=your-gmail-app-password
+   SMTP_FROM="EcoScrap Pro <your-sender@gmail.com>"
    ```
+
+   For OTP emails through Gmail, use a Gmail account as the sender and create a Google App Password for `SMTP_PASS`.
 
 ### Frontend Setup (`frontend/.env`)
 1. Navigate to the `frontend/` directory.

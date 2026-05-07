@@ -17,7 +17,9 @@ const userSchema = new mongoose.Schema({
     default: 'Doorstep Scrap Pickup',
   },
   role: { type: String, enum: ['customer', 'admin', 'corporate'], default: 'customer' },
-  isActive: { type: Boolean, default: true }
+  isActive: { type: Boolean, default: true },
+  resetPasswordOtpHash: { type: String },
+  resetPasswordExpires: { type: Date },
 }, { timestamps: true });
 
 userSchema.pre('save', async function (next) {

@@ -1,7 +1,10 @@
 .venv/
+venv/
 __pycache__/
 *.pyc
 .env
+node_modules/
+dist/
 assets/uploads/
 !assets/uploads/.gitkeep
 instance/

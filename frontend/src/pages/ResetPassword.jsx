@@ -1,59 +1,55 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LogIn, ShieldCheck } from 'lucide-react';
+import { KeySquare, RefreshCcw } from 'lucide-react';
 import PasswordField from '../components/PasswordField';
-import { useAuth } from '../context/useAuth';
 import { api, getErrorMessage } from '../lib/api';
 
 const MotionDiv = motion.div;
 
-const Login = () => {
+const ResetPassword = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { persistSession, isAuthenticated, user } = useAuth();
-  const emailInputRef = useRef(null);
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(location.state?.email || '');
+  const [otp, setOtp] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const successMessage = location.state?.message;
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate(user?.role === 'admin' ? '/admin' : '/dashboard');
-    }
-  }, [isAuthenticated, navigate, user?.role]);
-
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError('');
-    setIsSubmitting(true);
 
-    try {
-      const { data } = await api.post('/auth/login', { email, password });
-      persistSession(data);
-      navigate(location.state?.from?.pathname || (data.role === 'admin' ? '/admin' : '/dashboard'));
-    } catch (submitError) {
-      setError(getErrorMessage(submitError, 'Unable to log you in right now.'));
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleForgotPasswordClick = () => {
-    const normalizedEmail = email.trim().toLowerCase();
-
-    if (!normalizedEmail) {
-      setError('Enter your email address first, then choose forgot password.');
-      emailInputRef.current?.focus();
+    if (!email || !otp || !password || !confirmPassword) {
+      setError('Please fill in email, OTP, and both password fields.');
       return;
     }
 
-    setError('');
-    navigate('/forgot-password', {
-      state: { email: normalizedEmail },
-    });
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const { data } = await api.post('/auth/reset-password', {
+        email,
+        otp,
+        password,
+      });
+
+      navigate('/login', {
+        replace: true,
+        state: { message: data.message },
+      });
+    } catch (submitError) {
+      setError(getErrorMessage(submitError, 'Unable to reset the password right now.'));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -69,27 +65,25 @@ const Login = () => {
       >
         <source src="/media/auth-background.mp4" type="video/mp4" />
       </video>
-      <div
-        className="container auth-page__grid"
-      >
+      <div className="container auth-page__grid">
         <MotionDiv
           initial={{ opacity: 0, x: -24 }}
           animate={{ opacity: 1, x: 0 }}
           className="glass-panel auth-panel auth-panel--hero"
           style={{ padding: '2rem' }}
         >
-          <span className="pill" style={{ marginBottom: '1rem', display: 'inline-flex' }}>Login page</span>
-          <h1 style={{ fontSize: '2.4rem', marginBottom: '1rem' }}>Welcome back</h1>
+          <span className="pill" style={{ marginBottom: '1rem', display: 'inline-flex' }}>Enter OTP</span>
+          <h1 style={{ fontSize: '2.4rem', marginBottom: '1rem' }}>Finish the reset</h1>
           <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
-            Login connects your account with profile data, service area data, and booking history from the database.
+            Check your email for the OTP, then enter it here together with your new password.
           </p>
           <div style={{ padding: '1rem', borderRadius: '1rem', background: 'rgba(255,255,255,0.75)' }}>
             <div className="flex items-center gap-2" style={{ marginBottom: '0.5rem' }}>
-              <ShieldCheck size={18} color="var(--primary)" />
-              <strong>What you get after login</strong>
+              <RefreshCcw size={18} color="var(--primary)" />
+              <strong>OTP expiry</strong>
             </div>
             <p style={{ color: 'var(--text-secondary)' }}>
-              Access your dashboard, create new scrap or service bookings, and review all requests by area and pincode.
+              OTP codes stay valid for 15 minutes. If it expires, request a fresh one from the forgot-password page.
             </p>
           </div>
         </MotionDiv>
@@ -101,9 +95,9 @@ const Login = () => {
           style={{ width: '100%', maxWidth: '480px', justifySelf: 'center', padding: '2rem' }}
         >
           <div className="text-center mb-4">
-            <LogIn size={40} color="var(--primary)" style={{ margin: '0 auto 1rem' }} />
-            <h2>Sign In</h2>
-            <p style={{ color: 'var(--text-secondary)' }}>Continue to your account dashboard</p>
+            <KeySquare size={40} color="var(--primary)" style={{ margin: '0 auto 1rem' }} />
+            <h2>Reset Password</h2>
+            <p style={{ color: 'var(--text-secondary)' }}>Enter your email, OTP, and new password</p>
           </div>
 
           {error ? (
@@ -122,7 +116,6 @@ const Login = () => {
             <div className="form-group">
               <label className="form-label">Email Address</label>
               <input
-                ref={emailInputRef}
                 type="email"
                 className="form-input"
                 value={email}
@@ -131,37 +124,44 @@ const Login = () => {
               />
             </div>
             <div className="form-group">
-              <label className="form-label">Password</label>
-              <PasswordField
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
+              <label className="form-label">OTP</label>
+              <input
+                type="text"
+                className="form-input"
+                value={otp}
+                onChange={(event) => setOtp(event.target.value)}
+                inputMode="numeric"
+                pattern="[0-9]{6}"
+                maxLength={6}
                 required
               />
             </div>
-            <div style={{ marginTop: '-0.25rem', marginBottom: '1rem', textAlign: 'right' }}>
-              <button
-                type="button"
-                onClick={handleForgotPasswordClick}
-                style={{
-                  color: 'var(--primary)',
-                  fontSize: '0.9rem',
-                  background: 'none',
-                  border: 'none',
-                  padding: 0,
-                  cursor: 'pointer',
-                }}
-              >
-                Forgot password?
-              </button>
+            <div className="form-group">
+              <label className="form-label">New Password</label>
+              <PasswordField
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                minLength={6}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Confirm Password</label>
+              <PasswordField
+                value={confirmPassword}
+                onChange={(event) => setConfirmPassword(event.target.value)}
+                minLength={6}
+                required
+              />
             </div>
             <button type="submit" className="btn btn-primary w-full" disabled={isSubmitting}>
-              {isSubmitting ? 'Signing in...' : 'Login'}
+              {isSubmitting ? 'Saving new password...' : 'Reset password'}
             </button>
           </form>
 
           <div className="text-center mt-4">
             <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-              Need an account? <Link to="/register" style={{ color: 'var(--primary)' }}>Register here</Link>
+              Need a fresh OTP? <Link to="/forgot-password" style={{ color: 'var(--primary)' }}>Request again</Link>
             </p>
           </div>
         </MotionDiv>
@@ -170,4 +170,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default ResetPassword;

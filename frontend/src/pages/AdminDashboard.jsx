@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Building2, LogOut, Users } from 'lucide-react';
+import { Building2, LogOut, Mail, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import { api, getAuthConfig, getErrorMessage } from '../lib/api';
@@ -26,6 +26,10 @@ const getPartnerStatusStyles = (status) => {
     return { background: 'rgba(16, 185, 129, 0.14)', color: 'var(--success)' };
   }
 
+  if (status === 'Rejected') {
+    return { background: 'rgba(239, 68, 68, 0.12)', color: 'var(--error)' };
+  }
+
   if (status === 'Contacted') {
     return { background: 'rgba(59, 130, 246, 0.12)', color: 'var(--secondary)' };
   }
@@ -35,6 +39,15 @@ const getPartnerStatusStyles = (status) => {
 
 const getCatalogItemKey = (type, id) => `${type}:${id}`;
 const formatServiceGroupLabel = (serviceGroup) => (serviceGroup === 'homeService' ? 'Home Service' : 'Service');
+const getMailtoHref = (email, subject) => {
+  const normalizedEmail = String(email || '').trim();
+
+  if (!normalizedEmail) {
+    return '';
+  }
+
+  return `mailto:${normalizedEmail}?${new URLSearchParams({ subject }).toString()}`;
+};
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -318,7 +331,16 @@ const AdminDashboard = () => {
                   <tr key={user._id} style={{ borderBottom: '1px solid var(--border)' }}>
                     <td style={{ padding: '1rem 0.5rem' }}>
                       <div style={{ fontWeight: 600 }}>{user.fullName || 'Unknown user'}</div>
-                      <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{user.email || 'No email'}</div>
+                      {user.email ? (
+                        <a
+                          href={getMailtoHref(user.email, 'EcoScrap account support')}
+                          style={{ color: 'var(--secondary)', fontSize: '0.9rem', textDecoration: 'none' }}
+                        >
+                          {user.email}
+                        </a>
+                      ) : (
+                        <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>No email</div>
+                      )}
                     </td>
                     <td style={{ padding: '1rem 0.5rem' }}>{formatIndianPhoneForDisplay(user.phone) || '-'}</td>
                     <td style={{ padding: '1rem 0.5rem' }}>{user.areaName || user.pinCode || '-'}</td>
@@ -357,9 +379,22 @@ const AdminDashboard = () => {
                 <div className="flex justify-between items-center" style={{ gap: '1rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
                   <div>
                     <h3 style={{ marginBottom: '0.25rem' }}>{partner.companyName}</h3>
-                    <p style={{ color: 'var(--text-secondary)' }}>
-                      {partner.contactPerson || 'Unknown contact'} • {partner.email || 'No email'} • {partner.phone ? formatIndianPhoneForDisplay(partner.phone) : 'No phone'}
-                    </p>
+                    <div style={{ color: 'var(--text-secondary)', display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
+                      <span>{partner.contactPerson || 'Unknown contact'}</span>
+                      <span aria-hidden="true">•</span>
+                      {partner.email ? (
+                        <a
+                          href={getMailtoHref(partner.email, `Re: ${partner.companyName || 'Partner application'}`)}
+                          style={{ color: 'var(--secondary)', textDecoration: 'none' }}
+                        >
+                          {partner.email}
+                        </a>
+                      ) : (
+                        <span>No email</span>
+                      )}
+                      <span aria-hidden="true">•</span>
+                      <span>{partner.phone ? formatIndianPhoneForDisplay(partner.phone) : 'No phone'}</span>
+                    </div>
                   </div>
                   <span style={{ padding: '0.35rem 0.8rem', borderRadius: '999px', fontWeight: 600, ...getPartnerStatusStyles(partner.status) }}>
                     {partner.status}
@@ -422,6 +457,15 @@ const AdminDashboard = () => {
                 ) : null}
 
                 <div className="flex justify-end gap-2" style={{ flexWrap: 'wrap' }}>
+                  {partner.email ? (
+                    <a
+                      href={getMailtoHref(partner.email, `Re: ${partner.companyName || 'Partner application'}`)}
+                      className="btn btn-outline flex items-center gap-2"
+                    >
+                      <Mail size={16} />
+                      Reply by Email
+                    </a>
+                  ) : null}
                   {partner.status !== 'Pending' ? (
                     <button
                       onClick={() => updatePartnerStatus(partner._id, 'Pending')}
@@ -449,6 +493,16 @@ const AdminDashboard = () => {
                       style={{ background: 'var(--success)' }}
                     >
                       {updatingPartnerId === partner._id ? 'Updating...' : 'Mark Partnered'}
+                    </button>
+                  ) : null}
+                  {partner.status !== 'Rejected' ? (
+                    <button
+                      onClick={() => updatePartnerStatus(partner._id, 'Rejected')}
+                      className="btn btn-primary"
+                      disabled={updatingPartnerId === partner._id}
+                      style={{ background: 'var(--error)' }}
+                    >
+                      {updatingPartnerId === partner._id ? 'Updating...' : 'Mark Rejected'}
                     </button>
                   ) : null}
                 </div>

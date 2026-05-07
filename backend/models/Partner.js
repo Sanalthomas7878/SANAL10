@@ -8,10 +8,10 @@ const partnerSchema = new mongoose.Schema({
   selectedServices: { type: [String], default: [] },
   selectedScrapCategories: { type: [String], default: [] },
   companyScrapDescription: { type: String, required: true, trim: true },
-  expectedMonthlyVolumeKg: { type: Number, min: 0, default: 0 },
+  expectedMonthlyVolumeKg: { type: Number, min: 15, default: 15 },
   hasOver15KgScrap: { type: Boolean, default: false },
   message: { type: String },
-  status: { type: String, enum: ['Pending', 'Contacted', 'Partnered'], default: 'Pending' }
+  status: { type: String, enum: ['Pending', 'Contacted', 'Partnered', 'Rejected'], default: 'Pending' }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Partner', partnerSchema);

@@ -6,7 +6,7 @@ const Location = require('../models/Location');
 const User = require('../models/User');
 
 const VALID_BOOKING_STATUSES = ['Pending', 'Accepted', 'Rejected', 'Completed'];
-const VALID_PARTNER_STATUSES = ['Pending', 'Contacted', 'Partnered'];
+const VALID_PARTNER_STATUSES = ['Pending', 'Contacted', 'Partnered', 'Rejected'];
 
 exports.getDashboardStats = async (req, res) => {
   try {

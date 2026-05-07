@@ -130,6 +130,7 @@ const Partners = () => {
     event.preventDefault();
     setError('');
     setSuccess('');
+    const expectedMonthlyVolumeKg = Number(formData.expectedMonthlyVolumeKg || 0);
 
     const phoneValidationMessage = getIndianPhoneValidationMessage(formData.phone);
     if (phoneValidationMessage) {
@@ -142,12 +143,17 @@ const Partners = () => {
       return;
     }
 
+    if (Number.isNaN(expectedMonthlyVolumeKg) || expectedMonthlyVolumeKg < 15) {
+      setError('Partner bookings require at least 15 kg of scrap volume.');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
       await api.post('/partners/apply', {
         ...formData,
-        expectedMonthlyVolumeKg: Number(formData.expectedMonthlyVolumeKg || 0),
+        expectedMonthlyVolumeKg,
         hasOver15KgScrap: formData.hasOver15KgScrap === 'true',
       });
 
@@ -179,7 +185,7 @@ const Partners = () => {
         </span>
         <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>Our Corporate Partners</h1>
         <p style={{ color: 'var(--text-secondary)', maxWidth: '600px', margin: '0 auto' }}>
-          We collaborate with businesses to handle mass-scale scrap, waste pickup, and business service support. Join as a partner, choose the scrap categories or business services you need, and tell us if your company usually handles loads above 15 kg.
+          We collaborate with businesses to handle mass-scale scrap, waste pickup, and business service support. Partner applications require at least 15 kg of scrap volume.
         </p>
       </div>
 
@@ -263,7 +269,7 @@ const Partners = () => {
          <div className="text-center" style={{ marginBottom: '2rem' }}>
            <h2 style={{ marginBottom: '0.75rem' }}>Become a Partner</h2>
            <p style={{ color: 'var(--text-secondary)', maxWidth: '720px', margin: '0 auto' }}>
-             Fill in your company details, choose the scrap or business service options you want, and tell us whether your loads typically go above 15 kg.
+             Fill in your company details, choose the scrap or business service options you want, and submit at least 15 kg of scrap volume for partner approval.
            </p>
          </div>
 
@@ -327,7 +333,7 @@ const Partners = () => {
                 <label className="form-label">Expected Scrap Volume (Monthly in kg)</label>
                 <input
                   type="number"
-                  min="0"
+                  min="15"
                   step="1"
                   name="expectedMonthlyVolumeKg"
                   className="form-input"
@@ -335,6 +341,9 @@ const Partners = () => {
                   onChange={handleChange}
                   required
                 />
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.5rem' }}>
+                  Minimum required for partner bookings: 15 kg.
+                </p>
             </div>
 
             <div className="form-group">
