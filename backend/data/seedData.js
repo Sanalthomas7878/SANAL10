@@ -77,7 +77,7 @@ const DEFAULT_SERVICES = [
     serviceGroup: 'service',
     description: 'Scheduled home pickup for recyclable scrap across Mangaluru and nearby areas.',
     basePrice: 99,
-    imageUrl: '/services/doorstep-scrap-pickup.webp',
+    imageUrl: '/services/doorstep-scrap-pickup.jpeg',
     isAvailable: true,
   },
   {

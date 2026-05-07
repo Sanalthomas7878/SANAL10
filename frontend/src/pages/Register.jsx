@@ -2,9 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { MapPin, UserPlus } from 'lucide-react';
+import PasswordField from '../components/PasswordField';
+import PhoneField from '../components/PhoneField';
 import { useAuth } from '../context/useAuth';
 import { api, getErrorMessage } from '../lib/api';
 import { locationFallback, operatingModesFallback } from '../lib/defaultData';
+import { getIndianPhoneValidationMessage, isRepeatedDigitIndianPhone } from '../lib/phone';
 import {
   buildServiceAreaAddress,
   findLocationByPinCode,
@@ -16,7 +19,7 @@ const MotionDiv = motion.div;
 
 const Register = () => {
   const navigate = useNavigate();
-  const { persistSession, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [locations, setLocations] = useState(locationFallback);
   const [operatingModes, setOperatingModes] = useState(operatingModesFallback);
   const [error, setError] = useState('');
@@ -69,6 +72,9 @@ const Register = () => {
   const selectedLocation = findLocationByPinCode(locations, normalizedPinCode);
   const pinCodeStatus = getPinCodeStatus(normalizedPinCode, selectedLocation);
   const detectedServiceArea = buildServiceAreaAddress(selectedLocation);
+  const repeatedPhoneWarning = isRepeatedDigitIndianPhone(formData.phone)
+    ? 'Phone number cannot contain the same digit repeated 10 times.'
+    : '';
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -83,6 +89,12 @@ const Register = () => {
     event.preventDefault();
     setError('');
 
+    const phoneValidationMessage = getIndianPhoneValidationMessage(formData.phone);
+    if (phoneValidationMessage) {
+      setError(phoneValidationMessage);
+      return;
+    }
+
     if (pinCodeStatus !== 'serviceable' || !selectedLocation) {
       setError('Service is not available for this PIN code yet.');
       return;
@@ -91,13 +103,14 @@ const Register = () => {
     setIsSubmitting(true);
 
     try {
-      const { data } = await api.post('/auth/register', {
+      await api.post('/auth/register', {
         ...formData,
         pinCode: normalizedPinCode,
         address: detectedServiceArea,
       });
-      persistSession(data);
-      navigate('/dashboard');
+      navigate('/login', {
+        state: { message: 'Account created successfully. Please sign in.' },
+      });
     } catch (submitError) {
       setError(getErrorMessage(submitError, 'Unable to create your account right now.'));
     } finally {
@@ -187,12 +200,23 @@ const Register = () => {
               <input type="email" name="email" className="form-input" value={formData.email} onChange={handleChange} required />
             </div>
             <div className="form-group">
-              <label className="form-label">Phone</label>
-              <input type="text" name="phone" className="form-input" value={formData.phone} onChange={handleChange} required />
+              <label className="form-label">Phone Number</label>
+              <PhoneField
+                id="register-phone"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                required
+              />
+              {repeatedPhoneWarning ? (
+                <div style={{ marginTop: '0.5rem', color: 'var(--error)', fontSize: '0.875rem' }}>
+                  {repeatedPhoneWarning}
+                </div>
+              ) : null}
             </div>
             <div className="form-group">
               <label className="form-label">Password</label>
-              <input type="password" name="password" className="form-input" value={formData.password} onChange={handleChange} required />
+              <PasswordField name="password" value={formData.password} onChange={handleChange} required />
             </div>
             <div className="form-group">
               <label className="form-label">PIN Code</label>

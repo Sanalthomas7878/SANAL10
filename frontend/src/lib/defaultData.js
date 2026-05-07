@@ -71,7 +71,7 @@ export const serviceFallback = [
     serviceGroup: 'service',
     description: 'Scheduled home pickup for recyclable scrap across the service area.',
     basePrice: 99,
-    imageUrl: '/services/doorstep-scrap-pickup.webp',
+    imageUrl: '/services/doorstep-scrap-pickup.jpeg',
   },
   {
     _id: 'service-business',

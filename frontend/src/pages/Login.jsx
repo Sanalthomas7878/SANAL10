@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { LogIn, ShieldCheck } from 'lucide-react';
+import PasswordField from '../components/PasswordField';
 import { useAuth } from '../context/useAuth';
 import { api, getErrorMessage } from '../lib/api';
 
@@ -15,6 +16,7 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const successMessage = location.state?.message;
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -94,6 +96,12 @@ const Login = () => {
             </div>
           ) : null}
 
+          {successMessage ? (
+            <div style={{ marginBottom: '1rem', padding: '0.85rem 1rem', background: 'rgba(16, 185, 129, 0.12)', color: 'var(--primary-dark)', borderRadius: '0.75rem' }}>
+              {successMessage}
+            </div>
+          ) : null}
+
           <form onSubmit={handleSubmit}>
             <div className="form-group">
               <label className="form-label">Email Address</label>
@@ -107,9 +115,7 @@ const Login = () => {
             </div>
             <div className="form-group">
               <label className="form-label">Password</label>
-              <input
-                type="password"
-                className="form-input"
+              <PasswordField
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 required

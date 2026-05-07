@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { CalendarClock, LogOut, MapPin, Package, Recycle, Settings, User } from 'lucide-react';
+import { CalendarClock, LogOut, MapPin, Minus, Package, Plus, Recycle, Settings, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import { api, getAuthConfig, getErrorMessage } from '../lib/api';
+import { formatIndianPhoneForDisplay } from '../lib/phone';
 import {
   locationFallback,
   operatingModesFallback,
@@ -18,10 +19,32 @@ import {
 
 const getServiceGroup = (service) => service.serviceGroup || 'service';
 
+const formatDateTimeLocal = (value) => {
+  const date = new Date(value);
+  date.setSeconds(0, 0);
+
+  const timezoneOffset = date.getTimezoneOffset() * 60 * 1000;
+  return new Date(date.getTime() - timezoneOffset).toISOString().slice(0, 16);
+};
+
 const buildDefaultSchedule = () => {
   const next = new Date(Date.now() + 24 * 60 * 60 * 1000);
   next.setMinutes(0, 0, 0);
-  return next.toISOString().slice(0, 16);
+  return formatDateTimeLocal(next);
+};
+
+const getWeightStep = (bookingType) => (bookingType === 'scrap' ? 1 : 1);
+
+const formatWeightOrQuantity = (value, bookingType) => {
+  if (bookingType === 'service') {
+    return String(Math.round(value));
+  }
+
+  if (Number.isInteger(value)) {
+    return String(value);
+  }
+
+  return String(Number(value.toFixed(2)));
 };
 
 const getBookingCode = (booking) => `#${String(booking?._id || '').slice(-6).toUpperCase() || 'NEW'}`;
@@ -149,22 +172,40 @@ const UserDashboard = () => {
   const selectedLocation = findLocationByPinCode(locations, normalizedPinCode);
   const pinCodeStatus = getPinCodeStatus(normalizedPinCode, selectedLocation);
   const detectedServiceArea = buildServiceAreaAddress(selectedLocation);
+  const minimumSchedule = formatDateTimeLocal(new Date());
   const selectedItems = formData.bookingType === 'scrap' ? categories : services;
   const regularServices = services.filter((service) => getServiceGroup(service) !== 'homeService');
   const homeServices = services.filter((service) => getServiceGroup(service) === 'homeService');
 
   const handleChange = (event) => {
     const { name, value } = event.target;
-    setFormData((current) => ({
-      ...current,
-      [name]: name === 'pinCode' ? normalizePinCode(value) : value,
-      itemId: name === 'bookingType'
-        ? ''
-        : current.itemId,
-      weightOrQuantity: name === 'bookingType'
-        ? (value === 'scrap' ? '10' : '1')
-        : current.weightOrQuantity,
-    }));
+    setFormData((current) => {
+      const nextFormData = {
+        ...current,
+        [name]: name === 'pinCode' ? normalizePinCode(value) : value,
+      };
+
+      if (name === 'bookingType') {
+        nextFormData.itemId = '';
+        nextFormData.weightOrQuantity = value === 'scrap' ? '10' : '1';
+      }
+
+      return nextFormData;
+    });
+  };
+
+  const adjustWeightOrQuantity = (direction) => {
+    setFormData((current) => {
+      const step = getWeightStep(current.bookingType);
+      const parsedValue = Number.parseFloat(current.weightOrQuantity);
+      const safeValue = Number.isNaN(parsedValue) ? 0 : parsedValue;
+      const nextValue = Math.max(step, safeValue + (direction * step));
+
+      return {
+        ...current,
+        weightOrQuantity: formatWeightOrQuantity(nextValue, current.bookingType),
+      };
+    });
   };
 
   const handleSubmit = async (event) => {
@@ -177,12 +218,23 @@ const UserDashboard = () => {
       return;
     }
 
+    const parsedScheduledAt = new Date(formData.scheduledAt);
+    if (Number.isNaN(parsedScheduledAt.getTime())) {
+      setError('Please choose a valid pickup date and time.');
+      return;
+    }
+
+    if (parsedScheduledAt.getTime() < Date.now()) {
+      setError('Pickup date and time cannot be in the past.');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
       const config = getAuthConfig(token);
       const commonPayload = {
-        scheduledAt: new Date(formData.scheduledAt).toISOString(),
+        scheduledAt: parsedScheduledAt.toISOString(),
         address: detectedServiceArea,
         pinCode: normalizedPinCode,
         notes: formData.notes,
@@ -283,8 +335,8 @@ const UserDashboard = () => {
         </div>
       ) : null}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
-        <div style={{ display: 'grid', gap: '1.5rem' }}>
+      <div className="dashboard-layout">
+        <div className="dashboard-main">
           <div className="glass-panel" style={{ padding: '2rem' }}>
             <div className="flex items-center gap-2" style={{ marginBottom: '0.75rem' }}>
               <Recycle size={20} color="var(--primary)" />
@@ -330,11 +382,52 @@ const UserDashboard = () => {
               <div className="flex gap-4" style={{ flexWrap: 'wrap' }}>
                 <div className="form-group" style={{ flex: '1 1 220px' }}>
                   <label className="form-label">{formData.bookingType === 'scrap' ? 'Weight (kg)' : 'Quantity'}</label>
-                  <input name="weightOrQuantity" type="number" min="1" className="form-input" value={formData.weightOrQuantity} onChange={handleChange} required />
+                  <div className="booking-stepper">
+                    <button
+                      type="button"
+                      className="booking-stepper-button"
+                      onClick={() => adjustWeightOrQuantity(-1)}
+                      aria-label={formData.bookingType === 'scrap' ? 'Reduce weight' : 'Reduce quantity'}
+                    >
+                      <Minus size={16} />
+                    </button>
+                    <input
+                      name="weightOrQuantity"
+                      type="number"
+                      min="1"
+                      step={formData.bookingType === 'scrap' ? '0.1' : '1'}
+                      inputMode="decimal"
+                      className="form-input booking-stepper-input"
+                      value={formData.weightOrQuantity}
+                      onChange={handleChange}
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="booking-stepper-button"
+                      onClick={() => adjustWeightOrQuantity(1)}
+                      aria-label={formData.bookingType === 'scrap' ? 'Increase weight' : 'Increase quantity'}
+                    >
+                      <Plus size={16} />
+                    </button>
+                  </div>
+                  <div style={{ marginTop: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
+                    {formData.bookingType === 'scrap'
+                      ? 'Enter the pickup weight manually in kg, or use the - and + buttons.'
+                      : 'Enter the quantity manually, or use the - and + buttons.'}
+                  </div>
                 </div>
                 <div className="form-group" style={{ flex: '1 1 220px' }}>
                   <label className="form-label">Preferred Time</label>
-                  <input name="scheduledAt" type="datetime-local" className="form-input" value={formData.scheduledAt} onChange={handleChange} required />
+                  <input
+                    name="scheduledAt"
+                    type="datetime-local"
+                    min={minimumSchedule}
+                    className="form-input"
+                    value={formData.scheduledAt}
+                    onChange={handleChange}
+                    required
+                  />
                 </div>
               </div>
 
@@ -400,7 +493,7 @@ const UserDashboard = () => {
                 No bookings yet. Create your first request using the form above.
               </div>
             ) : (
-              <div style={{ overflowX: 'auto' }}>
+              <div className="dashboard-table-wrap" style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '680px' }}>
                   <thead>
                     <tr style={{ borderBottom: '1px solid var(--border)', textAlign: 'left' }}>
@@ -437,14 +530,18 @@ const UserDashboard = () => {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gap: '1rem', alignContent: 'start' }}>
-          <div className="glass-panel" style={{ padding: '2rem', textAlign: 'center' }}>
-            <div style={{ width: '84px', height: '84px', borderRadius: '50%', background: 'var(--primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem', margin: '0 auto 1rem' }}>
-              {(profile?.fullName || 'U').charAt(0).toUpperCase()}
+        <aside className="dashboard-sidebar">
+          <div className="glass-panel dashboard-profile-card" style={{ padding: '2rem' }}>
+            <div className="dashboard-profile-header">
+              <div className="dashboard-profile-avatar">
+                {(profile?.fullName || 'U').charAt(0).toUpperCase()}
+              </div>
+              <div className="dashboard-profile-meta">
+                <h3>{profile?.fullName}</h3>
+                <p>{profile?.email}</p>
+                <p>{formatIndianPhoneForDisplay(profile?.phone)}</p>
+              </div>
             </div>
-            <h3>{profile?.fullName}</h3>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>{profile?.email}</p>
-            <p style={{ color: 'var(--text-secondary)' }}>{profile?.phone}</p>
           </div>
 
           <div className="glass-panel" style={{ padding: '1.5rem' }}>
@@ -452,11 +549,25 @@ const UserDashboard = () => {
               <User size={18} color="var(--primary)" />
               <h3>Profile details</h3>
             </div>
-            <div style={{ display: 'grid', gap: '0.75rem', color: 'var(--text-secondary)' }}>
-              <div><strong style={{ color: 'var(--text-primary)' }}>Pincode:</strong> {profile?.pinCode}</div>
-              <div><strong style={{ color: 'var(--text-primary)' }}>Area:</strong> {profile?.areaName}</div>
-              <div><strong style={{ color: 'var(--text-primary)' }}>City:</strong> {profile?.city}, {profile?.state}</div>
-              <div><strong style={{ color: 'var(--text-primary)' }}>Operating mode:</strong> {profile?.operatingMode}</div>
+            <div className="dashboard-detail-list">
+              <div className="dashboard-detail-row">
+                <span className="dashboard-detail-label">Pincode</span>
+                <span className="dashboard-detail-value">{profile?.pinCode || '-'}</span>
+              </div>
+              <div className="dashboard-detail-row">
+                <span className="dashboard-detail-label">Area</span>
+                <span className="dashboard-detail-value">{profile?.areaName || '-'}</span>
+              </div>
+              <div className="dashboard-detail-row">
+                <span className="dashboard-detail-label">City</span>
+                <span className="dashboard-detail-value">
+                  {[profile?.city, profile?.state].filter(Boolean).join(', ') || '-'}
+                </span>
+              </div>
+              <div className="dashboard-detail-row">
+                <span className="dashboard-detail-label">Operating mode</span>
+                <span className="dashboard-detail-value">{profile?.operatingMode || '-'}</span>
+              </div>
             </div>
           </div>
 
@@ -485,7 +596,7 @@ const UserDashboard = () => {
               <li className="flex items-center gap-2"><Package size={18} /> Request tracking</li>
             </ul>
           </div>
-        </div>
+        </aside>
       </div>
     </div>
   );

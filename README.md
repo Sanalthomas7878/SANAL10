@@ -51,6 +51,22 @@ http://127.0.0.1:5050/
 
 This builds the Vite frontend and lets the Express backend serve the compiled app and all `/api` routes from the same server.
 
+### One Command Development Mode
+If you want to start both the frontend and backend together with one command while keeping hot reload, run this from the project root:
+
+```bash
+npm run dev
+```
+
+Then use:
+
+```text
+Frontend: http://127.0.0.1:4173/
+Backend:  http://127.0.0.1:5050/
+```
+
+The frontend uses Vite, and `/api` requests are proxied to the backend automatically.
+
 ### Starting the Backend
 1. Open a terminal and navigate to the `backend` folder:
    ```bash

@@ -4,7 +4,7 @@
   "description": "EcoScrap Pro API",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon index.js",
+    "dev": "nodemon --legacy-watch index.js",
     "start": "node index.js"
   },
   "dependencies": {

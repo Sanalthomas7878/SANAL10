@@ -2,6 +2,7 @@ const Service = require('../models/Service');
 const Booking = require('../models/Booking');
 const Location = require('../models/Location');
 const { OPERATING_MODES } = require('../data/seedData');
+const { validateScheduledAt } = require('../utils/bookingSchedule');
 const { buildLocationAddress } = require('../utils/locationAddress');
 
 exports.getServices = async (req, res) => {
@@ -36,13 +37,18 @@ exports.bookService = async (req, res) => {
       return res.status(400).json({ message: 'Please choose a valid operating mode.' });
     }
 
+    const { isValid, message, parsedScheduledAt } = validateScheduledAt(scheduledAt);
+    if (!isValid) {
+      return res.status(400).json({ message });
+    }
+
     const booking = await Booking.create({
       user: req.user._id,
       bookingType: 'service',
       item: serviceId,
       itemModel: 'Service',
       weightOrQuantity: parsedQuantity,
-      scheduledAt,
+      scheduledAt: parsedScheduledAt,
       address: address?.trim() || buildLocationAddress(loc),
       areaName: loc.areaName,
       city: loc.city,

@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const Location = require('../models/Location');
 const { OPERATING_MODES } = require('../data/seedData');
 const { buildLocationAddress } = require('../utils/locationAddress');
+const { formatIndianPhone, getIndianPhoneValidationMessage } = require('../utils/phone');
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET || 'fallback_secret', {
@@ -34,6 +35,11 @@ exports.registerUser = async (req, res) => {
       return res.status(400).json({ message: 'Please fill all required registration fields.' });
     }
 
+    const phoneValidationMessage = getIndianPhoneValidationMessage(phone);
+    if (phoneValidationMessage) {
+      return res.status(400).json({ message: phoneValidationMessage });
+    }
+
     const userExists = await User.findOne({ email: normalizedEmail });
     if (userExists) {
       return res.status(400).json({ message: 'User already exists' });
@@ -52,7 +58,7 @@ exports.registerUser = async (req, res) => {
       fullName,
       email: normalizedEmail,
       password,
-      phone,
+      phone: formatIndianPhone(phone),
       address: address?.trim() || buildLocationAddress(location),
       pinCode: location.pinCode,
       areaName: location.areaName,
